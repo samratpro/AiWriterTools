@@ -1,0 +1,35 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+{% block dashboardcontent %}
+
+<div class="container ps-5">
+
+    <form action="" method="post" class="w-50">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ website_form.website_name }}
+        </div>
+        <div class="form-group">
+            {{ website_form.website_url }}
+        </div>
+        <div class="form-group">
+            {{ website_form.username }}
+        </div>
+        <div class="form-group">
+            {{ website_form.app_pass }}
+        </div>
+        <div class="form-group">
+            <input class="btn btn-success" type="submit" value="Save">
+        </div>
+    </form>
+    
+</div>
+<div class="container mt-5 ps-5">
+    <ul class="list-group">
+        <li class="list-group-item bg-secondary text-white">Website Lists</li>
+        {% for website in website_data  %}
+        <li class="list-group-item">{{website.website_name}} <a class="btn btn-warning m-1" href="{% url 'single_website' website.id %}"> Views </a> <a class="btn btn-success m-1" href="{% url 'update_website' website.id %}">Update</a> <a class="btn btn-danger m-1" href="{% url 'delete_website' website.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock dashboardcontent %}

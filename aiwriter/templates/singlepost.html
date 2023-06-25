@@ -1,0 +1,38 @@
+{% extends 'dashboard.html' %}
+{% block dashboardcontent %}
+
+<div class="container">
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="" class="form-label">Keyword</label>
+          <input type="text"
+            class="form-control" name="keyword" id="">
+        </div>
+        <label for="" class="form-label">Outline</label>
+        <div class="form-floating">
+            <textarea name="outline" class="form-control" id="floatingTextarea2" style="height: 300px"></textarea>
+        </div>
+        <select name="website_id" class="form-select mt-3" aria-label="Default select example">
+            <option selected>Select Website</option>
+            {% for single_website in website  %}
+            <option value="{{single_website.id}}">{{single_website.website_name}}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-success mt-5">Make Post</button>
+    
+    </form>
+</div>
+
+<div class="container mt-5">
+    <ul class="list-group">
+        {% for keyword in keyword_pending  %}
+        <li class="list-group-item">
+            {{keyword.name}} Status : {{keyword.status}}    
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock dashboardcontent %}

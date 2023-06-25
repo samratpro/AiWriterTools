@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container-fluid pe-5">
+    <div class="row">
+        <div class="dashnav col-sm-3 px-0 bg-light ps-4">
+            <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+                <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                    <li>
+                        <a href="{% url 'dashboard' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "dashboard" %} actv {% endif %}">Dashboard</a>
+                    </li>  
+                    <li>
+                        <a href="{% url 'website' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "website" %} actv {% endif %}">Website</a>
+                    </li>   
+                    <li>
+                        <a href="{% url 'bulkpost' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "bulkpost" %} actv {% endif %}">Bulk Post</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'singlepost' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "singlepost" %} actv {% endif %}">Single Post</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'completepost' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "completepost" %} actv {% endif %}">Completed Posts</a>
+                    </li>                 
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-sm-9 py-3">
+           {% block dashboardcontent %}
+           
+            dashboard
+
+           {% endblock dashboardcontent %}
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock content %}
