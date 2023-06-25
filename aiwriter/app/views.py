@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
 from .forms import *
 from .models import *
+import concurrent.futures
+from .task import *
+import threading
 
 
 # Create your views here.
@@ -69,10 +72,29 @@ def delete_website(request, website_id):
     return redirect('/website')
 
 
+# def bulkpost(request):
+#     template = 'bulkpost.html'
+#     keyword_pending = BulkKeywordModel.objects.filter(status='Pending')
+#     context = {'keyword_pending': keyword_pending}
+#     if request.method == 'POST':
+#         keyword_list = request.POST.get('keyword_list')
+#         keywords = keyword_list.split('\n')
+
+#         for keyword in keywords:
+#             keyword = keyword.strip()
+#             if keyword:
+#                 BulkKeywordModel.objects.create(name=keyword)
+
+#         return redirect('bulkpost')
+#     else:
+#         return render(request, template, context=context)  
+  
+scheduler_thread = None  
 def bulkpost(request):
     template = 'bulkpost.html'
     keyword_pending = BulkKeywordModel.objects.filter(status='Pending')
     context = {'keyword_pending': keyword_pending}
+    
     if request.method == 'POST':
         keyword_list = request.POST.get('keyword_list')
         keywords = keyword_list.split('\n')
@@ -80,13 +102,17 @@ def bulkpost(request):
         for keyword in keywords:
             keyword = keyword.strip()
             if keyword:
-                BulkKeywordModel.objects.create(name=keyword)
+                BulkKeywordModel.objects.create(name=keyword, status='Pending')
 
+        global scheduler_thread
+        if scheduler_thread is None or not scheduler_thread.is_alive():
+            # Start the task scheduler in a separate thread
+            scheduler_thread = threading.Thread(target=BulkKeywordsJob)
+            scheduler_thread.start()
         return redirect('bulkpost')
-    else:
-        return render(request, template, context=context)  
     
- 
+    return render(request, template, context=context)
+    
 
 def singlepost(request):
     website = WesiteModel.objects.all()

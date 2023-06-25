@@ -38,8 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
-    'django_crontab',
-    'django_cron',
 ]
 
 MIDDLEWARE = [
@@ -128,9 +126,4 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# CronJob _______________________
-CRONJOBS = [
-    ('*/1 * * * *', 'app.cron.BulkKeywordsJob')
-]
 

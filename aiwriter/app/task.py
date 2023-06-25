@@ -12,3 +12,4 @@ def BulkKeywordsJob():
         keyword.article = 'Article'
         keyword.status = 'Completed'
         keyword.save()
+    
