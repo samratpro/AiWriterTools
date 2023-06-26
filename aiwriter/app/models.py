@@ -1,5 +1,13 @@
 from django.db import models
 
+class OpenaiAPIModel(models.Model):
+    name = models.CharField(max_length=150)
+    API_Key = models.CharField(max_length=500)
+    
+    def __str__(self):
+        return self.name
+
+
 # Create your models here.
 class WesiteModel(models.Model):
     website_name = models.CharField(max_length=150)

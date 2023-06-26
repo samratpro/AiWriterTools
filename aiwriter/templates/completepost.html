@@ -1,6 +1,19 @@
 {% extends 'dashboard.html' %}
 {% block dashboardcontent %}
 
-completed
+<div class="container mt-5">
+    <ul class="list-group">
+        {% for bulk in BulkKeyword  %}
+        <li class="list-group-item">
+            {{bulk.name}},  Status : {{bulk.status}}    
+        </li>
+        {% endfor %}
+        {% for Single in SingleKeyword  %}
+        <li class="list-group-item">
+            {{Single.name}},  Status : {{Single.status}}    
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 
 {% endblock dashboardcontent %}

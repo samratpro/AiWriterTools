@@ -15,6 +15,28 @@ def dashboard(request):
     template = 'dashboard.html'
     return render(request, template)
 
+def OpenaiAPI(request):
+    website_data = OpenaiAPIModel.objects.all()
+    template = 'api.html'
+    if request.method == 'POST':
+        form = APIForm(request.POST)
+        context = {'api_form':form}
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            API_Key = form.cleaned_data['apikey']
+            obj = OpenaiAPIModel(name=name, API_Key=API_Key)
+            obj.save()
+            return redirect('/api')
+        else:
+            return redirect('/api')
+                
+    else:
+        form = APIForm()
+        context = {'api_form':form, 'api_data':website_data}
+        return render(request, template, context=context)
+
+
+
 def website(request):
     website_data = WesiteModel.objects.all()
     template = 'website.html'
@@ -71,29 +93,18 @@ def delete_website(request, website_id):
     website.delete()
     return redirect('/website')
 
-
-# def bulkpost(request):
-#     template = 'bulkpost.html'
-#     keyword_pending = BulkKeywordModel.objects.filter(status='Pending')
-#     context = {'keyword_pending': keyword_pending}
-#     if request.method == 'POST':
-#         keyword_list = request.POST.get('keyword_list')
-#         keywords = keyword_list.split('\n')
-
-#         for keyword in keywords:
-#             keyword = keyword.strip()
-#             if keyword:
-#                 BulkKeywordModel.objects.create(name=keyword)
-
-#         return redirect('bulkpost')
-#     else:
-#         return render(request, template, context=context)  
+def delete_api(request, api_id):
+    api = OpenaiAPIModel.objects.get(pk=api_id)
+    api.delete()
+    return redirect('/api')
   
 scheduler_thread = None  
 def bulkpost(request):
     template = 'bulkpost.html'
+    website = WesiteModel.objects.all()
+    api = OpenaiAPIModel.objects.all()
     keyword_pending = BulkKeywordModel.objects.filter(status='Pending')
-    context = {'keyword_pending': keyword_pending}
+    context = {'keyword_pending': keyword_pending, 'api':api, 'website':website}
     
     if request.method == 'POST':
         keyword_list = request.POST.get('keyword_list')
@@ -116,8 +127,9 @@ def bulkpost(request):
 
 def singlepost(request):
     website = WesiteModel.objects.all()
+    api = OpenaiAPIModel.objects.all()
     template = 'singlepost.html'
-    context = {'website':website}
+    context = {'website':website,'api':api,}
     if request.method == 'POST' and 'keyword' in request.POST and 'outline' in request.POST and 'website_id' in request.POST:
         keyword = request.POST['keyword']
         outline = request.POST['outline']
@@ -130,5 +142,8 @@ def singlepost(request):
     return render(request, template, context=context)
 
 def completepost(request):
+    BulkKeyword = BulkKeywordModel.objects.filter(status='Completed')
+    SingleKeyword = SingleKeywordModel.objects.filter(status='Pending')
+    context = {'BulkKeyword':BulkKeyword, 'SingleKeyword':SingleKeyword}
     template = 'completepost.html'
-    return render(request, template)
+    return render(request, template, context=context)
