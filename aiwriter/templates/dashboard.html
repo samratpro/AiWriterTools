@@ -10,7 +10,10 @@
                         <a href="{% url 'dashboard' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "dashboard" %} actv {% endif %}">Dashboard</a>
                     </li> 
                     <li>
-                        <a href="{% url 'api' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "api" %} actv {% endif %}">API</a>
+                        <a href="{% url 'api' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "api" %} actv {% endif %}">OpenAI API</a>
+                    </li> 
+                    <li>
+                        <a href="{% url 'youtubeapi' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "youtubeapi" %} actv {% endif %}">YouTube API</a>
                     </li> 
                     <li>
                         <a href="{% url 'website' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "website" %} actv {% endif %}">Website</a>
@@ -41,10 +44,10 @@
                                 <div class="row no-gutters align-items-center">
 
                                     <div class="col mr-2">
-                                        <div class="text-sm font-weight-bold text-info text-uppercase mb-1">
-                                            Total Articles
+                                        <div class="text-sm font-weight-bold text-dark text-uppercase mb-1">
+                                            Bulk Posted
                                         </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{count_bulkpost}}</div>
                                     </div>
                                     <div class="col-auto">
                                         <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
@@ -60,13 +63,13 @@
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
-                                        <div class="text-sm font-weight-bold text-info text-uppercase mb-1">
-                                            Total Websites
+                                        <div class="text-sm font-weight-bold text-dark text-uppercase mb-1">
+                                            Single Posted
                                         </div>
                                         <div class="row no-gutters align-items-center">
                                             <div class="col-auto">
                                                 <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
-                                                    0
+                                                    {{count_singlepost}}
                                                 </div>
                                             </div>
                                         </div>
@@ -85,13 +88,61 @@
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
-                                        <div class="text-sm font-weight-bold text-info text-uppercase mb-1">
-                                            API
+                                        <div class="text-sm font-weight-bold text-dark text-uppercase mb-1">
+                                            Website List
                                         </div>
                                         <div class="row no-gutters align-items-center">
                                             <div class="col-auto">
                                                 <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
-                                                    0
+                                                    {{count_website}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+
+
+                <!-- Content Row -->
+                <div class="row">
+                    <!-- Total Article  Card Example -->
+                    <div class="col-xl-3 col-md-6 mt-4 ms-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+
+                                    <div class="col mr-2">
+                                        <div class="text-sm font-weight-bold text-dark text-uppercase mb-1">
+                                            OpenAI API
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{count_openai}}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Website Card Example -->
+                    <div class="col-xl-3 col-md-6 mt-4 ms-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-sm font-weight-bold text-dark text-uppercase mb-1">
+                                            YouTube API
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 text-dark font-weight-bold">
+                                                    {{count_youtube}}
                                                 </div>
                                             </div>
                                         </div>
@@ -103,6 +154,10 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+
+
 
            {% endblock dashboardcontent %}
         </div>

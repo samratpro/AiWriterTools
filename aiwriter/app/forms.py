@@ -7,7 +7,13 @@ class WebsiteForms(forms.Form):
     username = forms.CharField(widget=TextInput(attrs={'placeholder': 'Username', 'class': 'form-control mb-3'}))
     app_pass = forms.CharField(widget=TextInput(attrs={'placeholder': 'Application Password', 'class': 'form-control mb-3'}))
 
-class APIForm(forms.Form):
+
+class OpenaiAPIForm(forms.Form):
+    name = forms.CharField(widget=TextInput(attrs={'placeholder': 'API Name', 'class': 'form-control mb-3 mt-3'}))
+    apikey = forms.CharField(widget=TextInput(attrs={'placeholder': 'API Key', 'class': 'form-control mb-3 mt-3'}))
+    api_engine = forms.CharField(widget=TextInput(attrs={'placeholder': 'API Engine', 'class': 'form-control mb-3 mt-3'}))
+
+class YoutubeAPIForm(forms.Form):
     name = forms.CharField(widget=TextInput(attrs={'placeholder': 'API Name', 'class': 'form-control mb-3 mt-3'}))
     apikey = forms.CharField(widget=TextInput(attrs={'placeholder': 'API Key', 'class': 'form-control mb-3 mt-3'}))
     

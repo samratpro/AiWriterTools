@@ -3,6 +3,14 @@ from django.db import models
 class OpenaiAPIModel(models.Model):
     name = models.CharField(max_length=150)
     API_Key = models.CharField(max_length=500)
+    engine = models.CharField(max_length=150, default="text-davinci-003")
+    
+    def __str__(self):
+        return self.name
+
+class YoutubeAPIModel(models.Model):
+    name = models.CharField(max_length=150)
+    API_Key = models.CharField(max_length=500)
     
     def __str__(self):
         return self.name
@@ -21,15 +29,16 @@ class WesiteModel(models.Model):
 class BulkKeywordModel(models.Model):
     name = models.CharField(max_length=100)
     status = models.CharField(max_length=20, default='Pending')
-    article = models.TextField(blank=True)
+    error = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
     
 class SingleKeywordModel(models.Model):
     name = models.CharField(max_length=100)
+    outline = models.TextField(blank=True)
     status = models.CharField(max_length=20, default='Pending')
-    article = models.TextField(blank=True)
-
+    error = models.TextField(blank=True, null=True)
+    
     def __str__(self):
         return self.name

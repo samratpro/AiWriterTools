@@ -1,0 +1,32 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+{% block dashboardcontent %}
+
+<div class="container ps-5">
+
+    <form action="" method="post" class="w-50">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ openaiapi_form.name }}
+        </div>
+        <div class="form-group">
+            {{ openaiapi_form.apikey }}
+        </div>
+        <div class="form-group">
+            {{ openaiapi_form.api_engine }}
+        </div>
+        <div class="form-group">
+            <input class="btn btn-success" type="submit" value="Save">
+        </div>
+    </form>
+    
+</div>
+<div class="container mt-5 ps-5">
+    <ul class="list-group">
+        <li class="list-group-item bg-secondary text-white">API Lists</li>
+        {% for api in api_data  %}
+        <li class="list-group-item">{{api.name}}, Key : {{api.API_Key}} <a class="btn btn-danger m-1" href="{% url 'delete_api' api.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock dashboardcontent %}

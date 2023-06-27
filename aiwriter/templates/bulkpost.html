@@ -15,14 +15,31 @@
             {% endfor %}
         </select>
 
-        <select name="api_id" class="form-select mt-3" aria-label="Default select example">
-            <option selected>Select API</option>
-            {% for single_api in api  %}
-            <option value="{{single_api.id}}">{{single_api.name}}</option>
+        <select name="openaiapi_id" class="form-select mt-3" aria-label="Default select example">
+            <option selected>Select OpenAI API</option>
+            {% for single_openaiapi in openaiapi  %}
+            <option value="{{single_openaiapi.id}}">{{single_openaiapi.name}}</option>
             {% endfor %}
         </select>
 
-        <button type="submit" class="btn btn-success mt-5">Start Making Post</button>
+        <select name="youtubeapi_id" class="form-select mt-3" aria-label="Default select example">
+            <option selected>Select Youtube API</option>
+            {% for single_youtubeapi in youtubeapi  %}
+            <option value="{{single_youtubeapi.id}}">{{single_youtubeapi.name}}</option>
+            {% endfor %}
+        </select>
+
+        <div class="input-group mt-3">
+            <input name="category" type="text" class="form-control" placeholder="Category Name" aria-label="Recipient's username" aria-describedby="basic-addon2">
+        </div>
+
+        <select name="status" class="form-select mt-3" aria-label="Default select example">
+            <option selected>Post Status</option>
+            <option value="publish">Publish</option>
+            <option value="draft">Draft</option>
+        </select>
+
+        <button type="submit" class="btn btn-success mt-4">Start Making Post</button>
     
     </form>
 </div>
