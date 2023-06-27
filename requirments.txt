@@ -1,5 +1,0 @@
-django-background-tasks==1.2.5
-django-cron==0.6.0
-django-crontab==0.7.1
-kombu==5.3.1
-schedule==1.2.0
