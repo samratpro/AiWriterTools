@@ -9,21 +9,21 @@
             <textarea name="keyword_list" class="form-control" id="floatingTextarea2" style="height: 300px"></textarea>
         </div>
         <select name="website_id" class="form-select mt-3" aria-label="Default select example">
-            <option selected>Select Website</option>
+            <option value="0" selected>Select Website</option>
             {% for single_website in website  %}
             <option value="{{single_website.id}}">{{single_website.website_name}}</option>
             {% endfor %}
         </select>
 
         <select name="openaiapi_id" class="form-select mt-3" aria-label="Default select example">
-            <option selected>Select OpenAI API</option>
+            <option value="0" selected>Select OpenAI API</option>
             {% for single_openaiapi in openaiapi  %}
             <option value="{{single_openaiapi.id}}">{{single_openaiapi.name}}</option>
             {% endfor %}
         </select>
 
         <select name="youtubeapi_id" class="form-select mt-3" aria-label="Default select example">
-            <option selected>Select Youtube API</option>
+            <option value="0" selected>Select Youtube API</option>
             {% for single_youtubeapi in youtubeapi  %}
             <option value="{{single_youtubeapi.id}}">{{single_youtubeapi.name}}</option>
             {% endfor %}
@@ -34,7 +34,7 @@
         </div>
 
         <select name="status" class="form-select mt-3" aria-label="Default select example">
-            <option selected>Post Status</option>
+            <option value="0" selected>Post Status</option>
             <option value="publish">Publish</option>
             <option value="draft">Draft</option>
         </select>

@@ -103,7 +103,7 @@ def BulkKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, ca
             return 'Text dose not Generated from OpenAI'
     
     openai.api_key = openai_key
-    def text_render(prompt):
+    def text_render(prompt, bulkmodel):
         try:
             res = openai.Completion.create(model=engine.strip(),prompt=prompt,temperature=1.5,max_tokens=2000,top_p=1.0,frequency_penalty=0.0,presence_penalty=0.0,stop=['asdfasdf', 'asdasdf'])
             text = res['choices'][0]['text'].strip() # type: ignore
@@ -111,14 +111,16 @@ def BulkKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, ca
             return text
         except Exception as oops:
             print('Text render fail .................')
-            error = 'error from API Section :' + str(oops)
-            return error
+            bulkmodel.error = 'OpenAI error and error Message is :' + str(oops)
+            bulkmodel.status = 'Failed'
+            bulkmodel.save()
+            return 'openaierror'
     
     
-    def formated_outline(keyword):
+    def formated_outline(keyword, bulkmodel):
         while True:
-            outline = text_render(f'{outline_prompt} """{keyword}""" \n{outline_prompt_format}\n H1: {keyword}')
-            if 'h2' in outline or 'H2' in outline:
+            outline = text_render(f'{outline_prompt} """{keyword}""" \n{outline_prompt_format}\n H1: {keyword}', bulkmodel)
+            if 'h2' in outline or 'H2' in outline or outline == 'openaierror':
                 break
         outlines = list()
         for line in outline.splitlines():
@@ -134,9 +136,9 @@ def BulkKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, ca
         return outlines
     
     
-    def content_body(keyword):
+    def content_body(keyword, bulkmodel):
         print('Content body .................')
-        outlines = formated_outline(keyword)
+        outlines = formated_outline(keyword, bulkmodel)
         print(outlines)
         prompt_remember = ''
         content_body_data = ''
@@ -145,13 +147,13 @@ def BulkKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, ca
             if 'h3' in heading.lower():
                 clean_heading = heading.replace('H3', '').replace('h3', '').replace(':', '').replace('-', '').replace('/','').replace('<', '').replace('>', '').strip()
                 print(f'Para Section H2 : {heading} .................')
-                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n'))
+                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n', bulkmodel))
                 prompt_remember = section
                 content_body_data += heading + section
             else:
                 print(F'Para Section H3 : {heading}.................')
                 clean_heading = heading.replace('H4', '').replace('h4', '').replace(':', '').replace('-', '').replace('/','').replace('<', '').replace('>', '').replace('H4','').replace('h4','').strip()
-                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n'))
+                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n', bulkmodel))
                 prompt_remember = section
                 content_body_data += heading + section
         print('Content body done .................')
@@ -189,20 +191,20 @@ def BulkKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, ca
         else:
             return ''
 
-    def faq(keyword):
+    def faq(keyword, bulkmodel):
         print('FAQ .................')
         try:
             questions = people_also_ask.get_related_questions(keyword, choice([4,5,6]))
         except:
             prompt = f'Topic:{keyword}\nWrite 6 related questions on this topic\n1.'
-            outline = text_render(prompt)
+            outline = text_render(prompt, bulkmodel)
             questions = outline.splitlines()
         faq_body = ''
         schema = '<script type="application/ld+json">{"@context":"https://schema.org","@type": "FAQPage","mainEntity":['
         for q in questions:
             q_filter = re.sub(r'[0-9]. ','', q)
             q_h3 = '<!-- wp:heading {"level":3} --><h3>'+q_filter+'</h3><!-- /wp:heading -->'
-            q_body_raw = text_render(f'Write a short answer to this question with one or two sentence {q_filter}')
+            q_body_raw = text_render(f'Write a short answer to this question with one or two sentence {q_filter}', bulkmodel)
             q_body = '<!-- wp:paragraph --><p>'+q_body_raw+'</p><!-- /wp:paragraph -->'
             faq_body += q_h3 + q_body
             question = '{"@type": "Question","name": "'+q_filter.replace('"','')+'",'
@@ -217,36 +219,37 @@ def BulkKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, ca
     for keyword_model in pending_keywords:
         keyword = keyword_model.name
         print('kw: ',keyword)
-        excerpt = text_render(f'Write a short summary,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 25 words\n')
-        introduction = text_format(text_render(f'Write interesting and attentionable blog Introduction,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 100 words\n'))
-        conclusion_para = text_format(text_render(f'keyword: {keyword}\nWrite an web article bottom summary\n and length approx 60 words\n'))
-        
-        post_body = introduction + '<h2>'+keyword.title().replace('What ', '').replace('When ', '').replace('Which ', '').replace('How ', '').replace('Where ', '').replace('Why ', '').replace('Does ', '')+'</h2>' + content_body(keyword) + youtubevid(keyword) + "<h2> FAQ's </h2>" + faq(keyword) + '<H2>Conclusion</H2>' + conclusion_para
-
-        image_id = feature_image(keyword)
-        category_id = create_category(category_name)
-        title = keyword.title()
-        slug = keyword.replace(' ', '-')
-
-        # Post Data
-        if category_id == 0:
-            post = {'title': title,'slug': slug,'status': status,'content': post_body,'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
-        else:
-            post = {'title': title,'slug': slug,'status': status,'content': post_body,'categories': [category_id],'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
+        introduction = text_format(text_render(f'Write interesting and attentionable blog Introduction,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 100 words\n', keyword_model))
+        if keyword_model.status != 'Failed':
+            excerpt = text_render(f'Write a short summary,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 25 words\n',keyword_model)
+            conclusion_para = text_format(text_render(f'keyword: {keyword}\nWrite an web article bottom summary\n and length approx 60 words\n', keyword_model))
             
-        
-        # Posting Request
-        r = requests.post(json_url + '/posts', headers=headers, json=post)
-        if r.status_code == 201:
-            keyword_model.error = 'No error'
-            keyword_model.status = 'Completed'
-        
-        else:
-            keyword_model.error = str(f'Error Status : {r.status_code}')
-            keyword_model.status = 'Failed'
-        sleep(10)        
-        keyword_model.save()
-        shutil.rmtree('bulkimg')
+            post_body = introduction + '<h2>'+keyword.title().replace('What ', '').replace('When ', '').replace('Which ', '').replace('How ', '').replace('Where ', '').replace('Why ', '').replace('Does ', '')+'</h2>' + content_body(keyword, keyword_model) + youtubevid(keyword) + "<h2> FAQ's </h2>" + faq(keyword, keyword_model) + '<H2>Conclusion</H2>' + conclusion_para
+
+            image_id = feature_image(keyword)
+            category_id = create_category(category_name)
+            title = keyword.title()
+            slug = keyword.replace(' ', '-')
+
+            # Post Data
+            if category_id == 0:
+                post = {'title': title,'slug': slug,'status': status,'content': post_body,'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
+            else:
+                post = {'title': title,'slug': slug,'status': status,'content': post_body,'categories': [category_id],'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
+                
+            
+            # Posting Request
+            r = requests.post(json_url + '/posts', headers=headers, json=post)
+            if r.status_code == 201:
+                keyword_model.error = 'No error'
+                keyword_model.status = 'Completed'
+                keyword_model.save()
+            else:
+                keyword_model.error = str(f'Wordpress Error and, error Status Code is : {r.status_code}')
+                keyword_model.status = 'Failed'
+                keyword_model.save()
+            sleep(10)        
+            shutil.rmtree('bulkimg')
     
 
 
@@ -335,7 +338,7 @@ def SingleKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, 
             return 'Text dose not Generated from OpenAI'
     
     openai.api_key = openai_key
-    def text_render(prompt):
+    def text_render(prompt, bulkmodel):
         try:
             res = openai.Completion.create(model=engine.strip(),prompt=prompt,temperature=1.5,max_tokens=2000,top_p=1.0,frequency_penalty=0.0,presence_penalty=0.0,stop=['asdfasdf', 'asdasdf'])
             text = res['choices'][0]['text'].strip() # type: ignore
@@ -343,14 +346,16 @@ def SingleKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, 
             return text
         except Exception as oops:
             print('Text render fail .................')
-            error = 'error from API Section :' + str(oops)
-            return error
+            bulkmodel.error = 'OpenAI error and error Message is :' + str(oops)
+            bulkmodel.status = 'Failed'
+            bulkmodel.save()
+            return 'openaierror'
     
     
-    def formated_outline(keyword, outline):
+    def formated_outline(keyword, outline, bulkmodel):
         if len(outline) < 1:
           while True:
-            outline = text_render(f'{outline_prompt} """{keyword}""" \n{outline_prompt_format}\n H1: {keyword}')
+            outline = text_render(f'{outline_prompt} """{keyword}""" \n{outline_prompt_format}\n H1: {keyword}', bulkmodel)
             if 'h2' in outline or 'H2' in outline:
                 break
         outlines = list()
@@ -372,9 +377,9 @@ def SingleKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, 
         return outlines
     
     
-    def content_body(keyword,outline):
+    def content_body(keyword,outline, bulkmodel):
         print('Content body .................')
-        outlines = formated_outline(keyword, outline)
+        outlines = formated_outline(keyword, outline, bulkmodel)
         print(outlines)
         prompt_remember = ''
         content_body_data = ''
@@ -383,13 +388,13 @@ def SingleKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, 
             if 'h3' in heading.lower():
                 clean_heading = heading.replace('H3', '').replace('h3', '').replace(':', '').replace('-', '').replace('/','').replace('<', '').replace('>', '').strip()
                 print(f'Para Section H2 : {heading} .................')
-                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n'))
+                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n', bulkmodel))
                 prompt_remember = section
                 content_body_data += heading + section
             else:
                 print(F'Para Section H3 : {heading}.................')
                 clean_heading = heading.replace('H4', '').replace('h4', '').replace(':', '').replace('-', '').replace('/','').replace('<', '').replace('>', '').replace('H4','').replace('h4','').strip()
-                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n'))
+                section = text_format(text_render(f'{paragraph_prompt} \n Prompt Rember : {prompt_remember}\n, article title is : {keyword}, heading is : {clean_heading} \n{paragraph_prompt_instruction}\n', bulkmodel))
                 prompt_remember = section
                 content_body_data += heading + section
         print('Content body done .................')
@@ -427,20 +432,20 @@ def SingleKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, 
         else:
             return ''
 
-    def faq(keyword):
+    def faq(keyword, bulkmodel):
         print('FAQ .................')
         try:
             questions = people_also_ask.get_related_questions(keyword, choice([4,5,6]))
         except:
             prompt = f'Topic:{keyword}\nWrite 6 related questions on this topic\n1.'
-            outline = text_render(prompt)
+            outline = text_render(prompt, bulkmodel)
             questions = outline.splitlines()
         faq_body = ''
         schema = '<script type="application/ld+json">{"@context":"https://schema.org","@type": "FAQPage","mainEntity":['
         for q in questions:
             q_filter = re.sub(r'[0-9]. ','', q)
             q_h3 = '<!-- wp:heading {"level":3} --><h3>'+q_filter+'</h3><!-- /wp:heading -->'
-            q_body_raw = text_render(f'Write a short answer to this question with one or two sentence {q_filter}')
+            q_body_raw = text_render(f'Write a short answer to this question with one or two sentence {q_filter}', bulkmodel)
             q_body = '<!-- wp:paragraph --><p>'+q_body_raw+'</p><!-- /wp:paragraph -->'
             faq_body += q_h3 + q_body
             question = '{"@type": "Question","name": "'+q_filter.replace('"','')+'",'
@@ -455,33 +460,34 @@ def SingleKeywordsJob(url, username, app_pass, openai_api, engine, youtube_api, 
     for keyword_model in pending_keywords:
         keyword = keyword_model.name
         print('kw: ',keyword)
-        excerpt = text_render(f'Write a short summary,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 25 words\n')
-        introduction = text_format(text_render(f'Write interesting and attentionable blog Introduction,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 100 words\n'))
-        conclusion_para = text_format(text_render(f'keyword: {keyword}\nWrite an web article bottom summary\n and length approx 60 words\n'))
-        
-        post_body = introduction + '<h2>'+keyword.title().replace('What ', '').replace('When ', '').replace('Which ', '').replace('How ', '').replace('Where ', '').replace('Why ', '').replace('Does ', '')+'</h2>' + content_body(keyword, keyword_model.outline) + youtubevid(keyword) + "<h2> FAQ's </h2>" + faq(keyword) + '<H2>Conclusion</H2>' + conclusion_para
+        introduction = text_format(text_render(f'Write interesting and attentionable blog Introduction,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 100 words\n', keyword_model))
+        if keyword_model.status != 'Failed':
+            excerpt = text_render(f'Write a short summary,\nKeyword: {keyword},\nMust be include keyword in output\nand length approx 25 words\n', keyword_model)
+            conclusion_para = text_format(text_render(f'keyword: {keyword}\nWrite an web article bottom summary\n and length approx 60 words\n', keyword_model))
+            post_body = introduction + '<h2>'+keyword.title().replace('What ', '').replace('When ', '').replace('Which ', '').replace('How ', '').replace('Where ', '').replace('Why ', '').replace('Does ', '')+'</h2>' + content_body(keyword, keyword_model.outline, keyword_model) + youtubevid(keyword) + "<h2> FAQ's </h2>" + faq(keyword, keyword_model) + '<H2>Conclusion</H2>' + conclusion_para
 
-        image_id = feature_image(keyword)
-        category_id = create_category(category_name)
-        title = keyword.title()
-        slug = keyword.replace(' ', '-')
+            image_id = feature_image(keyword)
+            category_id = create_category(category_name)
+            title = keyword.title()
+            slug = keyword.replace(' ', '-')
 
-        # Post Data
-        if category_id == 0:
-            post = {'title': title,'slug': slug,'status': status,'content': post_body,'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
-        else:
-            post = {'title': title,'slug': slug,'status': status,'content': post_body,'categories': [category_id],'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
+            # Post Data
+            if category_id == 0:
+                post = {'title': title,'slug': slug,'status': status,'content': post_body,'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
+            else:
+                post = {'title': title,'slug': slug,'status': status,'content': post_body,'categories': [category_id],'format': 'standard','excerpt': excerpt,'featured_media': int(image_id)}
+                
             
-        
-        # Posting Request
-        r = requests.post(json_url + '/posts', headers=headers, json=post)
-        if r.status_code == 201:
-            keyword_model.error = 'No error'
-            keyword_model.status = 'Completed'
-        
-        else:
-            keyword_model.error = str(f'Error Status : {r.status_code}')
-            keyword_model.status = 'Failed'
-        sleep(10)        
-        keyword_model.save()
-        shutil.rmtree('bulkimg')
+            # Posting Request
+            r = requests.post(json_url + '/posts', headers=headers, json=post)
+            if r.status_code == 201:
+                keyword_model.error = 'No error'
+                keyword_model.status = 'Completed'
+                keyword_model.save()
+            
+            else:
+                keyword_model.error = str(f'Error Status : {r.status_code}')
+                keyword_model.status = 'Failed'
+                keyword_model.save()
+            sleep(10)        
+            shutil.rmtree('bulkimg')
