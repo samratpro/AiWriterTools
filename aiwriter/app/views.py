@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, auth # type: ignore
 from django.contrib import messages
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -18,10 +20,14 @@ def login(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             auth.login(request, user)
-            return redirect('dashboard')
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            else:
+               return redirect('dashboard')
         else:
             messages.info(request, 'Invalid password or username')
-            return redirect('login')
+            return redirect(request.get_full_path())
     else:
         template = 'login.html'
         return render(request, template)
@@ -37,8 +43,8 @@ def home(request):
     template = 'home.html'
     return render(request, template)
 
+@login_required(login_url='login/')
 def dashboard(request):
-    if request.user.is_authenticated:
         count_website = WesiteModel.objects.count()
         count_openai = OpenaiAPIModel.objects.count()
         count_youtube = YoutubeAPIModel.objects.count()
@@ -47,11 +53,9 @@ def dashboard(request):
         context = {'count_website':count_website, 'count_openai':count_openai, 'count_youtube':count_youtube, 'count_bulkpost':count_bulkpost, 'count_singlepost':count_singlepost }
         template = 'dashboard.html'
         return render(request, template, context=context)
-    else:
-        return redirect('login')
-
+    
+@login_required(login_url='login/')
 def OpenaiAPI(request):
-    if request.user.is_authenticated:
         api_data = OpenaiAPIModel.objects.all()
         template = 'openaiapi.html'
         if request.method == 'POST':
@@ -71,11 +75,10 @@ def OpenaiAPI(request):
             form = OpenaiAPIForm()
             context = {'openaiapi_form':form, 'api_data':api_data}
             return render(request, template, context=context)
-    else:
-        return redirect('login')
+        
     
+@login_required(login_url='login/')
 def YoutubeAPI(request):
-    if request.user.is_authenticated:
         api_data = YoutubeAPIModel.objects.all()
         template = 'youtubeapi.html'
         if request.method == 'POST':
@@ -94,11 +97,10 @@ def YoutubeAPI(request):
             form = YoutubeAPIForm()
             context = {'youtubeapi_form':form, 'api_data':api_data}
             return render(request, template, context=context)
-    else:
-        return redirect('login')
 
+
+@login_required(login_url='login/')
 def website(request):
-    if request.user.is_authenticated:
         website_data = WesiteModel.objects.all()
         template = 'website.html'
         if request.method == 'POST':
@@ -119,20 +121,17 @@ def website(request):
             form = WebsiteForms()
             context = {'website_form':form, 'website_data':website_data}
             return render(request, template, context=context)
-    else:
-        return redirect('login')
-    
+
+
+@login_required(login_url='login/')   
 def single_website(request, website_id):
-    if request.user.is_authenticated:
         template = "single_website.html"
         single_website = WesiteModel.objects.get(pk=website_id)
         context = {'single_website': single_website,'website_id': website_id}
         return render(request, template, context)
-    else:
-        return redirect('login')
 
+@login_required(login_url='login/') 
 def update_website(request, website_id):
-    if request.user.is_authenticated:
         template = "update_website.html"
         website = WesiteModel.objects.get(pk=website_id)
 
@@ -154,37 +153,70 @@ def update_website(request, website_id):
             })
         context = {'update_form': update_form,'website_id': website_id}
         return render(request, template, context)
-    else:
-        return redirect('login')
 
+
+@login_required(login_url='login/') 
 def delete_website(request, website_id):
-    if request.user.is_authenticated:
         website = WesiteModel.objects.get(pk=website_id)
         website.delete()
         return redirect('/website')
-    else:
-        return redirect('login')
 
+@login_required(login_url='login/') 
 def delete_api(request, api_id):
-    if request.user.is_authenticated:
         api = OpenaiAPIModel.objects.get(pk=api_id)
         api.delete()
         return redirect('/api')
-    else:
-        return redirect('login')
 
+@login_required(login_url='login/') 
 def delete_youtube_api(request, api_id):
-    if request.user.is_authenticated:
         api = YoutubeAPIModel.objects.get(pk=api_id)
         api.delete()
         return redirect('/youtubeapi')
-    else:
-        return redirect('login')
 
-  
-scheduler_thread = None  
+
+@login_required(login_url='login/') 
+def delete_completed_bulk_post(request, post_id):
+        api = BulkKeywordModel.objects.get(pk=post_id)
+        api.delete()
+        return redirect('/completepost')
+    
+
+@login_required(login_url='login/')    
+def delete_completed_single_post(request, post_id):
+        api = SingleKeywordModel.objects.get(pk=post_id)
+        api.delete()
+        return redirect('/completepost')
+
+@login_required(login_url='login/') 
+def delete_error_bulk_post(request, post_id):
+        api = BulkKeywordModel.objects.get(pk=post_id)
+        print(api)
+        api.delete()
+        return redirect('/errorpost')
+    
+
+@login_required(login_url='login/')    
+def delete_error_single_post(request, post_id):
+        api = SingleKeywordModel.objects.get(pk=post_id)
+        api.delete()
+        return redirect('/errorpost')
+
+
+@login_required(login_url='login/')    
+def delete_pending_bulk_post(request, post_id):
+        api = BulkKeywordModel.objects.get(pk=post_id)
+        api.delete()
+        return redirect('/bulkpost')
+    
+@login_required(login_url='login/')    
+def delete_pending_single_post(request, post_id):
+        api = SingleKeywordModel.objects.get(pk=post_id)
+        api.delete()
+        return redirect('/singlepost')    
+
+scheduler_thread = None
+@login_required(login_url='login/')   
 def bulkpost(request):
-    if request.user.is_authenticated:
         template = 'bulkpost.html'
         website = WesiteModel.objects.all()
         openaiapi = OpenaiAPIModel.objects.all()
@@ -239,12 +271,11 @@ def bulkpost(request):
                 return redirect('bulkpost')
         else:
             return render(request, template, context=context)
-    else:
-        return redirect('login')
-    
-scheduler_thread2 = None 
+
+
+scheduler_thread2 = None
+@login_required(login_url='login/')     
 def singlepost(request):
-    if request.user.is_authenticated:
         website = WesiteModel.objects.all()
         website = WesiteModel.objects.all()
         openaiapi = OpenaiAPIModel.objects.all()
@@ -287,9 +318,9 @@ def singlepost(request):
                 
                 global scheduler_thread2
                 if scheduler_thread2 is None or not scheduler_thread2.is_alive():
-                    # Start the task scheduler in a separate thread
-                    scheduler_thread2 = threading.Thread(target=SingleKeywordsJob, args=(url, username, app_pass, openai_key, openai_engine, youtube_key, category, status))
-                    scheduler_thread2.start()
+                      # Start the task scheduler in a separate thread
+                      scheduler_thread2 = threading.Thread(target=SingleKeywordsJob, args=(url, username, app_pass, openai_key, openai_engine, youtube_key, category, status))
+                      scheduler_thread2.start()
                 return redirect('singlepost')
             except:
                 return redirect('singlepost')
@@ -297,15 +328,33 @@ def singlepost(request):
             redirect('singlepost')
             
         return render(request, template, context=context)
-    else:
-        return redirect('login')
 
+@login_required(login_url='login/') 
 def completepost(request):
-    if request.user.is_authenticated:
-        BulkKeyword = BulkKeywordModel.objects.exclude(status='Pending')
-        SingleKeyword = SingleKeywordModel.objects.exclude(status='Pending')
+        BulkKeyword = BulkKeywordModel.objects.filter(status='Completed').order_by('name')
+        SingleKeyword = SingleKeywordModel.objects.filter(status='Completed').order_by('name')
         context = {'BulkKeyword':BulkKeyword, 'SingleKeyword':SingleKeyword}
         template = 'completepost.html'
         return render(request, template, context=context)
-    else:
-        return redirect('login')
+
+@login_required(login_url='login/')    
+def errorpost(request):
+        BulkKeyword = BulkKeywordModel.objects.filter(status='Failed').order_by('name')
+        SingleKeyword = SingleKeywordModel.objects.filter(status='Failed').order_by('name')
+        context = {'BulkKeyword':BulkKeyword, 'SingleKeyword':SingleKeyword}
+        template = 'errorpost.html'
+        return render(request, template, context=context)
+    
+@login_required(login_url='login/')
+def single_post_view(request, post_id):
+    templeate = 'single_post_view.html'
+    single_post = SingleKeywordModel.objects.get(pk=post_id)
+    context = {'single_post':single_post}
+    return render(request, templeate, context=context)
+
+@login_required(login_url='login/')
+def bulk_post_view(request, post_id):
+    templeate = 'bulk_post_view.html'
+    bulk_post = BulkKeywordModel.objects.get(pk=post_id)
+    context = {'bulk_post':bulk_post}
+    return render(request, templeate, context=context)

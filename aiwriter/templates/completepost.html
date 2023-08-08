@@ -5,12 +5,16 @@
     <ul class="list-group">
         {% for bulk in BulkKeyword  %}
         <li class="list-group-item p-3 border-left">
-            {{bulk.name}},  <span class="ms-3 border rounded p-1 bg-light"> Status : {{bulk.status}}</span> <span class="ms-2 border rounded p-1 bg-light"> {{bulk.error}} </span>   
+            {{bulk.name}},  <span class="ms-3 border rounded p-1 bg-light"> Status : {{bulk.status}}</span> <span class="ms-2 border rounded p-1 bg-light"> {{bulk.error}} </span>
+            <a class="btn btn-danger ms-3 m-1" href="{% url 'delete_completed_bulk_post' bulk.id %}">Delete</a>    
+            <a class="btn btn-warning ms-3 m-1" href="{% url 'bulk_post_view' bulk.id %}">View</a>    
         </li>
         {% endfor %}
         {% for Single in SingleKeyword  %}
         <li class="list-group-item p-3">
-            {{Single.name}},  <span class="ms-3 border rounded p-1 bg-light"> Status : {{Single.status}} </span>  <span class="ms-2 border rounded p-1 bg-light"> {{Single.error}} </span>  
+            {{Single.name}},  <span class="ms-3 border rounded p-1 bg-light"> Status : {{Single.status}} </span>  <span class="ms-2 border rounded p-1 bg-light"> {{Single.error}} </span>
+            <a class="btn btn-danger ms-3 m-1" href="{% url 'delete_completed_single_post' Single.id %}">Delete</a> 
+            <a class="btn btn-warning ms-3 m-1" href="{% url 'single_post_view' Single.id %}">View</a> 
         </li>
         {% endfor %}
     </ul>

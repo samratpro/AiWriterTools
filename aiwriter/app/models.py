@@ -1,4 +1,5 @@
 from django.db import models
+from ckeditor_uploader.fields import RichTextUploadingField
 
 class OpenaiAPIModel(models.Model):
     name = models.CharField(max_length=150)
@@ -29,6 +30,7 @@ class WesiteModel(models.Model):
 class BulkKeywordModel(models.Model):
     name = models.CharField(max_length=100)
     status = models.CharField(max_length=20, default='Pending')
+    content = RichTextUploadingField(blank=True, null=True)
     error = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -38,6 +40,7 @@ class SingleKeywordModel(models.Model):
     name = models.CharField(max_length=100)
     outline = models.TextField(blank=True)
     status = models.CharField(max_length=20, default='Pending')
+    content = RichTextUploadingField(blank=True, null=True)
     error = models.TextField(blank=True, null=True)
     
     def __str__(self):

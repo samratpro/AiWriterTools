@@ -26,7 +26,10 @@
                     </li>
                     <li>
                         <a href="{% url 'completepost' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "completepost" %} actv {% endif %}">Completed Posts</a>
-                    </li>                 
+                    </li>
+                    <li>
+                        <a href="{% url 'errorpost' %}" class="nav-link py-3 border-bottom align-middle{% if request.resolver_match.url_name == "errorpost" %} actv {% endif %}">Error Posts</a>
+                    </li>                    
                 </ul>
             </div>
         </div>

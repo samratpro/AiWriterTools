@@ -48,7 +48,9 @@
         <ul class="list-group">
             {% for keyword in keyword_pending  %}
             <li class="list-group-item">
-                {{keyword.name}} Status : {{keyword.status}}    
+                {{keyword.name}} <span style="border-bottom:2px solid red;">Status</span> : {{keyword.status}}
+                <span class="border rounded ms-2 p-1 bg-warning">{{keyword.error}}</span> 
+                <a class="btn btn-danger ms-3 m-1" href="{% url 'delete_pending_bulk_post' keyword.id %}">Cancel</a>    
             </li>
             {% endfor %}
         </ul>
